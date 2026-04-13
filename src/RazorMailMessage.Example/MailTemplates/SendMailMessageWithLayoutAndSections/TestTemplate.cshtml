@@ -1,7 +1,10 @@
 ﻿@{
     Layout = "SendMailMessageWithLayoutAndSections.MailLayout.cshtml"; 
 }
-<p>@section Header{ This is the header }</p>
+@section Header {
+    <p> This is the header</p>
+}
+
 <p style="font-weight: bold;">Hi @Model.Name</p>
 
 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In mi risus, semper sit amet lorem sed, tincidunt posuere orci. Vivamus quis accumsan magna. Ut massa magna, fringilla in nibh in, ultrices pretium tortor. Donec erat nulla, hendrerit non felis non, dictum ornare velit. Nulla eget ipsum non nisi sollicitudin varius vel sit amet elit. Quisque nec ipsum nec sem eleifend pretium. Nunc congue malesuada velit. Cras porta nibh sit amet dolor iaculis, ut fermentum elit posuere.</p> 
@@ -14,5 +17,8 @@
     <br/>
     Skaele Software Development
 </p>
-<p>@section Footer{ This is the footer }</p>
+@section Footer {
+    <p>This is the footer</p>
+}
+
 
