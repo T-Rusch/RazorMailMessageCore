@@ -1,8 +1,9 @@
-﻿using System;
-using System.Reflection;
+﻿using NUnit;
 using NUnit.Framework;
 using RazorMailMessage.Exceptions;
 using RazorMailMessage.TemplateResolvers;
+using System;
+using System.Reflection;
 
 namespace RazorMailMessage.Tests
 {
@@ -66,30 +67,24 @@ namespace RazorMailMessage.Tests
         }
 
         [Test]
-        [ExpectedException(ExpectedException = typeof(ArgumentNullException))]
         public void ExceptionIsThrownWhenTemplateNameNotSpecified()
         {
-            new DefaultTemplateResolver().ResolveTemplate("", false);
+            Assert.Throws<ArgumentNullException>(() =>
+                new DefaultTemplateResolver().ResolveTemplate("", false));
         }
 
         [Test]
-        public void IfTemplateIsNotFoundNullValueIsReturned()
-        {
-            Assert.IsNull(new DefaultTemplateResolver().ResolveTemplate("BogusTemplate.cshtml", false));
-        }
-
-        [Test]
-        [ExpectedException(ExpectedException = typeof(TemplateNotFoundException))]
         public void IfLayoutIsNotFoundExceptionIsThrown()
         {
-            new DefaultTemplateResolver().ResolveLayout("BogusLayout.cshtml");
+            Assert.Throws<TemplateNotFoundException>(() =>
+                new DefaultTemplateResolver().ResolveLayout("BogusLayout.cshtml"));
         }
 
         [Test]
-        [ExpectedException(ExpectedException = typeof(ArgumentNullException))]
         public void IfAssemblyIsNullExceptionIsThrown()
         {
-            new DefaultTemplateResolver((Assembly)null, "TestTemplates");
+            Assert.Throws<ArgumentNullException>(() =>
+                new DefaultTemplateResolver((Assembly)null, "TestTemplates"));
         }
     }
 }

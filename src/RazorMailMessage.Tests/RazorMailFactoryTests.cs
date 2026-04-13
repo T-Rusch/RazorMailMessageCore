@@ -6,6 +6,7 @@ using System.Net.Mail;
 using System.Text;
 using Moq;
 using NUnit.Framework;
+using RazorLight;
 using RazorMailMessage.Exceptions;
 using RazorMailMessage.TemplateBase;
 using RazorMailMessage.TemplateCache;
@@ -224,40 +225,40 @@ namespace RazorMailMessage.Tests
         }
 
         [Test]
-        [ExpectedException(ExpectedException = typeof(TemplateNotFoundException))]
-        public void TemplateNotFoundExceptionIsThrownWhenTextAndHtmlTemplateAreMissing()
+            public void TemplateNotFoundExceptionIsThrownWhenTextAndHtmlTemplateAreMissing()
         {
-            new RazorMailMessageFactory(new Mock<ITemplateResolver>().Object, typeof(DefaultTemplateBase<>), null, new Mock<InMemoryTemplateCache>().Object)
-                .Create("test.cshtml", new { Name = "Robin" });
+            Assert.Throws<RazorLight.TemplateNotFoundException>(() =>
+                new RazorMailMessageFactory(new Mock<ITemplateResolver>().Object, typeof(DefaultTemplateBase<>), null, new Mock<InMemoryTemplateCache>().Object)
+                    .Create("test.cshtml", new { Name = "Robin" }));
         }
 
         [Test]
-        [ExpectedException(ExpectedException = typeof(ArgumentNullException))]
         public void TemplateNameCannotBeEmpty()
         {
-            new RazorMailMessageFactory(new Mock<ITemplateResolver>().Object, typeof(DefaultTemplateBase<>), null, new Mock<InMemoryTemplateCache>().Object)
-                .Create(" ", new { Name = "Robin" });
+            Assert.Throws<ArgumentNullException>(() =>
+                new RazorMailMessageFactory(new Mock<ITemplateResolver>().Object, typeof(DefaultTemplateBase<>), null, new Mock<InMemoryTemplateCache>().Object)
+                    .Create(" ", new { Name = "Robin" }));
         }
 
         [Test]
-        [ExpectedException(ExpectedException = typeof(ArgumentNullException))]
         public void TemplateResolverCannotBeNull()
         {
-            new RazorMailMessageFactory(null);
+            Assert.Throws<ArgumentNullException>(() =>
+                new RazorMailMessageFactory(null));
         }
 
         [Test]
-        [ExpectedException(ExpectedException = typeof(ArgumentNullException))]
         public void TemplateCacheCannotBeNull()
         {
-            new RazorMailMessageFactory(new Mock<ITemplateResolver>().Object, typeof(DefaultTemplateBase<>), null, null);
+            Assert.Throws<ArgumentNullException>(() =>
+                new RazorMailMessageFactory(new Mock<ITemplateResolver>().Object, typeof(DefaultTemplateBase<>), null, null));
         }
 
         [Test]
-        [ExpectedException(ExpectedException = typeof(ArgumentNullException))]
         public void TemplateBaseTypeCannotBeNull()
         {
-            new RazorMailMessageFactory(new Mock<ITemplateResolver>().Object, null, null, new Mock<InMemoryTemplateCache>().Object);
+            Assert.Throws<ArgumentNullException>(() =>
+                new RazorMailMessageFactory(new Mock<ITemplateResolver>().Object, null, null, new Mock<InMemoryTemplateCache>().Object));
         }
     }
 }
