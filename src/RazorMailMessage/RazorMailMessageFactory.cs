@@ -1,11 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Net.Mail;
 using System.Net.Mime;
 using System.Reflection;
 using System.Text;
-using RazorEngine.Configuration;
-using RazorEngine.Templating;
+using Microsoft.CodeAnalysis;
+using RazorLight;
 using RazorMailMessage.Exceptions;
 using RazorMailMessage.TemplateBase;
 using RazorMailMessage.TemplateCache;
@@ -18,7 +19,8 @@ namespace RazorMailMessage
     {
         private readonly ITemplateResolver _templateResolver;
         private readonly ITemplateCache _templateCache;
-        private readonly ITemplateService _templateService;
+        private readonly IRazorLightEngine _engine;
+        private readonly Type _templateBase;
 
         public RazorMailMessageFactory() : this(new DefaultTemplateResolver(Assembly.GetCallingAssembly(), string.Empty), typeof(DefaultTemplateBase<>), null, new InMemoryTemplateCache()) { }
 
@@ -27,52 +29,41 @@ namespace RazorMailMessage
         public RazorMailMessageFactory(ITemplateResolver templateResolver, Type templateBase) : this(templateResolver, templateBase, null, new InMemoryTemplateCache()) { }
 
         public RazorMailMessageFactory(ITemplateResolver templateResolver, Type templateBase, Func<Type, object> dependencyResolver) : this(templateResolver, templateBase, dependencyResolver, new InMemoryTemplateCache()) { }
-       
+
         public RazorMailMessageFactory(ITemplateResolver templateResolver, Type templateBase, Func<Type, object> dependencyResolver, ITemplateCache templateCache)
         {
             if (templateResolver == null)
-            {
                 throw new ArgumentNullException("templateResolver");
-            }
             if (templateCache == null)
-            {
                 throw new ArgumentNullException("templateCache");
-            }
             if (templateBase == null)
-            {
                 throw new ArgumentNullException("templateBase");
-            }
-            
+
             _templateResolver = templateResolver;
             _templateCache = templateCache;
+            _templateBase = templateBase;
 
-            var templateServiceConfiguration = new TemplateServiceConfiguration
+            var project = new RazorMailMessageProject(templateResolver, templateCache);
+
+            var builder = new RazorLightEngineBuilder()
+                .UseProject(project)
+                .UseMemoryCachingProvider();
+
+            // When a custom template base class is used, add the necessary assembly references
+            // so RazorLight's compiler can resolve the type used in the injected @inherits directive.
+            if (templateBase != typeof(DefaultTemplateBase<>))
             {
-                // Layout resolver for razor engine
-                // Once resolved, the layout will be cached by the razor engine, so the resolver is called only once during the lifetime of this factory
-                // However, we want the ability to cache the layout even when the factory is instatiated multiple times
-                Resolver = new DelegateTemplateResolver(layoutName =>
-                    {
-                        var layout = _templateCache.Get(layoutName);
+                var refs = new List<MetadataReference>
+                {
+                    MetadataReference.CreateFromFile(typeof(DefaultTemplateBase<>).Assembly.Location)
+                };
+                if (templateBase.Assembly != typeof(DefaultTemplateBase<>).Assembly)
+                    refs.Add(MetadataReference.CreateFromFile(templateBase.Assembly.Location));
 
-                        if (layout == null)
-                        {
-                            layout = _templateResolver.ResolveLayout(layoutName);
-                            _templateCache.Add(layoutName, layout);
-                        }
-                        return layout;
-                    }),
-                
-                // Set view base class
-                BaseTemplateType = templateBase
-            };
-
-            if (dependencyResolver != null)
-            {
-                templateServiceConfiguration.Activator = new Activators.Activator(dependencyResolver);
+                builder = builder.AddMetadataReferences(refs.ToArray());
             }
-            
-            _templateService = new TemplateService(templateServiceConfiguration);
+
+            _engine = builder.Build();
         }
 
         public virtual MailMessage Create<TModel>(string templateName, TModel model)
@@ -80,7 +71,7 @@ namespace RazorMailMessage
             return Create(templateName, model, null, null);
         }
 
-        public virtual MailMessage Create<TModel>(string templateName, TModel model, DynamicViewBag viewBag)
+        public virtual MailMessage Create<TModel>(string templateName, TModel model, ExpandoObject viewBag)
         {
             return Create(templateName, model, viewBag, null);
         }
@@ -90,16 +81,13 @@ namespace RazorMailMessage
             return Create(templateName, model, null, linkedResources);
         }
 
-        public virtual MailMessage Create<TModel>(string templateName, TModel model, DynamicViewBag viewBag, IEnumerable<LinkedResource> linkedResources)
+        public virtual MailMessage Create<TModel>(string templateName, TModel model, ExpandoObject viewBag, IEnumerable<LinkedResource> linkedResources)
         {
             if (string.IsNullOrWhiteSpace(templateName))
-            {
                 throw new ArgumentNullException("templateName");
-            }
 
             linkedResources = linkedResources ?? new List<LinkedResource>();
 
-            // Get parsed templates
             var htmlTemplate = ParseTemplate(templateName, model, false, viewBag);
             var textTemplate = ParseTemplate(templateName, model, true, viewBag);
 
@@ -107,80 +95,81 @@ namespace RazorMailMessage
             var hasTextTemplate = !string.IsNullOrWhiteSpace(textTemplate);
 
             if (!hasHtmlTemplate && !hasTextTemplate)
-            {
-                throw new TemplateNotFoundException(templateName);
-            }
+                throw new RazorLight.TemplateNotFoundException(templateName);
 
             var mailMessage = new MailMessage { BodyEncoding = Encoding.UTF8 };
 
             if (hasTextTemplate)
             {
-                // Text version was found. Plain text version should be set on body property, html version on alternate view
+                // Plain-text body; HTML goes in an alternate view
                 // http://msdn.microsoft.com/en-us/library/system.net.mail.mailmessage.alternateviews.aspx
                 mailMessage.Body = textTemplate;
             }
 
             if (hasHtmlTemplate)
             {
-                // Always create alternate view for html templates, linked resources can only be added to alternate view
+                // Always use an alternate view for HTML so linked resources can be attached
                 mailMessage.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(htmlTemplate, Encoding.UTF8, MediaTypeNames.Text.Html));
 
                 foreach (var linkedResource in linkedResources)
-                {
                     mailMessage.AlternateViews[0].LinkedResources.Add(linkedResource);
-                }
 
-                // If no text template available, html template should also be set on body
+                // If no plain-text template, also set the HTML body directly
                 if (!hasTextTemplate)
-                {
                     mailMessage.Body = htmlTemplate;
-                }
             }
 
             mailMessage.IsBodyHtml = !hasTextTemplate;
-
             return mailMessage;
         }
 
-        private string ParseTemplate<TModel>(string templateName, TModel model, bool plainText, DynamicViewBag viewBag)
+        private string ParseTemplate<TModel>(string templateName, TModel model, bool plainText, ExpandoObject viewBag)
         {
             var templateCacheName = ResolveTemplateCacheName(templateName, plainText);
 
-            // Try to get template from cache
+            // Resolve template content (use cache to avoid repeated resolution)
             var template = _templateCache.Get(templateCacheName);
-
             if (template == null)
             {
-                // Resolve template and add to cache
                 template = _templateResolver.ResolveTemplate(templateName, plainText);
-
-                // In case template is not resolved (could be the case with plain text templates), we cache an empty string.
+                // Cache empty string for missing plain-text variants so we don't retry
                 _templateCache.Add(templateCacheName, template ?? "");
             }
 
-            return string.IsNullOrWhiteSpace(template) ? null : _templateService.Parse(template, model, viewBag, templateCacheName);
+            if (string.IsNullOrWhiteSpace(template)) return null;
+
+            // Prepend @inherits directive for custom base classes so helper methods are accessible
+            var templateContent = PrepareTemplate(template);
+
+            return _engine.CompileRenderStringAsync(templateCacheName, templateContent, model, viewBag)
+                .GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Prepends the @inherits directive when a non-default base class is configured,
+        /// giving compiled templates access to custom helper methods defined on the base.
+        /// </summary>
+        private string PrepareTemplate(string template)
+        {
+            if (_templateBase == typeof(DefaultTemplateBase<>))
+                return template;
+
+            // Build a fully-qualified type name with <dynamic> for the generic parameter.
+            // e.g. "MyApp.CustomTemplateBase`1" → "MyApp.CustomTemplateBase<dynamic>"
+            var typeName = _templateBase.FullName.Replace("`1", "<dynamic>");
+            return $"@inherits {typeName}{Environment.NewLine}{template}";
         }
 
         private static string ResolveTemplateCacheName(string templateName, bool plainText)
         {
-            // Resolve template cache name based on culture and whether or not it is the plain text version
-            var templateCacheNameParts = new List<string> {templateName};
-
-            if (plainText)
-            {
-                templateCacheNameParts.Add("text");
-            }
-
-            var templateCacheName = string.Join(".", templateCacheNameParts);
-            return templateCacheName;
+            var parts = new List<string> { templateName };
+            if (plainText) parts.Add("text");
+            return string.Join(".", parts);
         }
 
         public void Dispose()
         {
-            if (_templateService != null)
-            {
-                _templateService.Dispose();
-            }
+            // RazorLightEngine does not implement IDisposable
         }
     }
 }

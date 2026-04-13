@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Net.Mail;
 using System.Text;
 using Moq;
 using NUnit.Framework;
-using RazorEngine.Templating;
 using RazorMailMessage.Exceptions;
 using RazorMailMessage.TemplateBase;
 using RazorMailMessage.TemplateCache;
@@ -150,10 +150,10 @@ namespace RazorMailMessage.Tests
             var razorMailMessageFactory = new RazorMailMessageFactory(templateResolverMock.Object, typeof(DefaultTemplateBase<>), null, new Mock<InMemoryTemplateCache>().Object);
             var model = new { };
 
-            dynamic viewBag = new DynamicViewBag();
+            dynamic viewBag = new ExpandoObject();
             viewBag.Name = "Robin";
 
-            var mailMessage = razorMailMessageFactory.Create("TestTemplate", model, viewBag);
+            var mailMessage = razorMailMessageFactory.Create("TestTemplate", model, (ExpandoObject)viewBag);
 
             const string expectedResult = "<b>Welcome Robin</b>";
             Assert.AreEqual(expectedResult, mailMessage.Body);
