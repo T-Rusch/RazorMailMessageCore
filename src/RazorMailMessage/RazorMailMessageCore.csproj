@@ -6,8 +6,8 @@
     <AssemblyTitle>RazorMailMessageCore</AssemblyTitle>
     <Product>RazorMailMessageCore</Product>
     <Copyright>Copyright ©  2013</Copyright>
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
-    <FileVersion>2.0.0.0</FileVersion>
+    <AssemblyVersion>2.1.0.0</AssemblyVersion>
+    <FileVersion>2.1.0.0</FileVersion>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
