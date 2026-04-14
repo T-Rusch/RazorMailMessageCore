@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorMailMessage", "src\RazorMailMessage\RazorMailMessage.csproj", "{7EE1FCB6-D017-4DDA-B650-ED2D0A888337}"
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11415.280 d18.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorMailMessageCore", "src\RazorMailMessage\RazorMailMessageCore.csproj", "{7EE1FCB6-D017-4DDA-B650-ED2D0A888337}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorMailMessage.Tests", "src\RazorMailMessage.Tests\RazorMailMessage.Tests.csproj", "{F718B627-F5E3-4285-B021-122D48E69D01}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorMailMessageCore.Tests", "src\RazorMailMessage.Tests\RazorMailMessageCore.Tests.csproj", "{F718B627-F5E3-4285-B021-122D48E69D01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorMailMessage.Example", "src\RazorMailMessage.Example\RazorMailMessage.Example.csproj", "{53907F76-D57F-4B91-9D1D-DA7D11D4F4A1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorMailMessageCore.Example", "src\RazorMailMessage.Example\RazorMailMessageCore.Example.csproj", "{53907F76-D57F-4B91-9D1D-DA7D11D4F4A1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7D2FC69A-4708-4C01-BCE5-1A8C9FF3DD10}"
 	ProjectSection(SolutionItems) = preProject

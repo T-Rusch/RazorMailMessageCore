@@ -27,7 +27,7 @@
     <EmbeddedResource Include="TestTemplates\IntegrationTest\TestTemplate.text.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RazorMailMessage\RazorMailMessage.csproj" />
+    <ProjectReference Include="..\RazorMailMessage\RazorMailMessageCore.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="TestTemplates\IntegrationTest\chuck_mailheader.png" />

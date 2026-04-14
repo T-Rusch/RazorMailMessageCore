@@ -21,7 +21,7 @@
     <EmbeddedResource Include="MailTemplates\SendMailMessageWithLayoutAndSections\TestTemplate.text.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RazorMailMessage\RazorMailMessage.csproj" />
+    <ProjectReference Include="..\RazorMailMessage\RazorMailMessageCore.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="MailTemplates\SendMailMessageWithEmbeddedImage\chuck_mailheader.png">
