@@ -3,15 +3,19 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <AssemblyTitle>RazorMailMessage</AssemblyTitle>
-    <Product>RazorMailMessage</Product>
+    <AssemblyTitle>RazorMailMessageCore</AssemblyTitle>
+    <Product>RazorMailMessageCore</Product>
     <Copyright>Copyright ©  2013</Copyright>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.5" />
     <PackageReference Include="System.Runtime.Caching" Version="10.0.5" />
     <PackageReference Include="RazorLight" Version="2.3.1" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="10.0.5" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 </Project>

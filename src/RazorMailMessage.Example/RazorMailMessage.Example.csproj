@@ -11,9 +11,6 @@
 	<PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="MailTemplates\SendMailMessageWithEmbeddedImage\MailLayout.cshtml" />
     <EmbeddedResource Include="MailTemplates\SendMailMessageWithEmbeddedImage\TestTemplate.cshtml" />
     <EmbeddedResource Include="MailTemplates\SendMailMessageWithEmbeddedImage\TestTemplate.text.cshtml" />
@@ -30,5 +27,8 @@
     <Content Include="MailTemplates\SendMailMessageWithEmbeddedImage\chuck_mailheader.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.5" />
   </ItemGroup>
 </Project>
